@@ -1,26 +1,54 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import Error from "components/Error";
+import Table from "components/Table";
+import { useStocks } from "context/StocksContext";
+import React, { useEffect, useRef } from "react";
+import "./tailwind.generated.css";
 
-function App() {
+const App = () => {
+  const { state, dispatch } = useStocks();
+
+  const socket = useRef(new WebSocket("ws://stocks.mnet.website"));
+
+  useEffect(() => {
+    socket.current.onopen = () => {
+      dispatch({
+        type: "TOGGLE_CONN_STATUS",
+      });
+    };
+
+    socket.current.onclose = () => {
+      dispatch({
+        type: "TOGGLE_CONN_STATUS",
+      });
+    };
+
+    socket.current.onerror = (error) => {
+      console.log(error);
+
+      dispatch({
+        type: "ERROR",
+      });
+    };
+
+    socket.current.onmessage = (msg) => {
+      dispatch({
+        type: "DATA",
+        payload: JSON.parse(msg.data),
+      });
+    };
+  });
+
+  useEffect(() => {
+    return function cleanup() {
+      return socket.current.close();
+    };
+  }, [socket]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="w-full h-screen bg-gray-100 flex overflow:hidden">
+      <div className="m-auto">{state.hasError ? <Error /> : <Table />}</div>
     </div>
   );
-}
+};
 
 export default App;

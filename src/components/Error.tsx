@@ -5,7 +5,10 @@ const Error = () => {
     <div className="p-5">
       <p className="flex flex-col justify-center items-center text-red-700 text-sm font-bold">
         Something Went Wrong!
-        <span className="text-red-500 text-xs font-light">Check Console</span>
+        <span className="text-red-500 text-xs font-light">
+          If you are on chrome, Allow 'Insecure Content' in site settings which
+          can be found by clicking the lock icon in address bar.
+        </span>
       </p>
     </div>
   );

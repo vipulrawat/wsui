@@ -7,10 +7,7 @@ import "./tailwind.generated.css";
 const App = () => {
   const { state, dispatch } = useStocks();
 
-  const URL =
-    process.env.NODE_ENV === "production"
-      ? "wss://stocks.mnet.website"
-      : "ws://stocks.mnet.website";
+  const URL = "ws://stocks.mnet.website";
   const socket = useRef(new WebSocket(URL));
 
   useEffect(() => {

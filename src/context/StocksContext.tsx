@@ -6,18 +6,24 @@ import React, {
   useReducer,
 } from "react";
 
+export enum StockStatus {
+  UP = "UP",
+  DOWN = "DOWN",
+  NEUTRAL = "NEUTRAL",
+}
+
 type ArrayOfString = [string, string];
-type StockItem = {
-  name: string;
+
+export type StockItem = {
   price: number;
-  status: string;
-  updatedAt: string;
+  status: StockStatus;
+  updatedAt: Date;
 };
 
 type State = {
   hasOpened: boolean;
   hasError: boolean;
-  data: StockItem[];
+  data: Record<string, StockItem>;
 };
 
 export interface Context {
@@ -33,7 +39,7 @@ type Action =
 const initialState = {
   hasOpened: false,
   hasError: false,
-  data: [],
+  data: {},
 };
 
 export const StockDataContext = createContext<Context>({
@@ -47,46 +53,26 @@ const reducer = (state: State, action: Action) => {
       const { payload } = action;
       const { data } = state;
 
-      let newData: StockItem[] = [];
+      const updatedData = data;
+      payload.forEach((stock) => {
+        const [name, price] = stock;
+        if (data.hasOwnProperty(name)) {
+          updatedData[name].price > Number(price)
+            ? (updatedData[name].status = StockStatus.DOWN)
+            : (updatedData[name].status = StockStatus.UP);
 
-      payload.forEach((newStock) => {
-        const [name, price] = newStock;
-        const currentPrice = parseFloat(price);
-
-        let indexOfExisting = -1;
-
-        if (data.length) {
-          indexOfExisting = data.findIndex((stock) => stock.name === name);
-        }
-
-        if (indexOfExisting > -1) {
-          const { price: prevPrice } = data[indexOfExisting];
-
-          let status = "NEUTRAL";
-
-          if (prevPrice > currentPrice) {
-            status = "UP";
-          } else if (prevPrice < currentPrice) {
-            status = "DOWN";
-          }
-
-          data[indexOfExisting] = {
-            name,
-            price: currentPrice,
-            status,
-            updatedAt: new Date().toString(),
-          };
+          updatedData[name].price = Number(price);
+          updatedData[name].updatedAt = new Date();
         } else {
-          newData.push({
-            name,
-            price: currentPrice,
-            status: "NEUTRAL",
-            updatedAt: new Date().toString(),
-          });
+          updatedData[name] = {
+            price: Number(price),
+            status: StockStatus.NEUTRAL,
+            updatedAt: new Date(),
+          };
         }
       });
 
-      return { ...state, data: [...data, ...newData] };
+      return { ...state, data: { ...data, ...updatedData } };
     case "ERROR":
       return { ...state, hasError: true };
     case "TOGGLE_CONN_STATUS":
